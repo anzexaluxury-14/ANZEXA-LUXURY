@@ -398,7 +398,6 @@ app.post('/cart/checkout', (req, res) => {
     let subtotal = cart.reduce((acc, item) => acc + (Number(item.price) * item.qty), 0);
     const total = Math.max(0, subtotal - (subtotal * (discount / 100)));
 
-    // Deduct Inventory Stock
     cart.forEach(item => {
         const p = db.products.find(x => x.id === item.id);
         if (p && p.stock !== undefined) {
@@ -414,7 +413,7 @@ app.post('/cart/checkout', (req, res) => {
         address,
         items: cart,
         totalAmount: total,
-        status: "Pending Admin Approval & WhatsApp Payment",
+        status: "Pending Admin Approval",
         courierName: "",
         trackingNumber: "",
         date: new Date().toLocaleString()
@@ -425,11 +424,11 @@ app.post('/cart/checkout', (req, res) => {
     req.session.cart = [];
     req.session.discount = 0;
 
-    const waMsg = encodeURIComponent(`Hello ANZEXA Admin,\nNew Order Placed!\nOrder ID: ${order.id}\nTotal: PKR ${total}\nName: ${customerName}\nAddress: ${address}\nPlease share WhatsApp payment details.`);
-    res.send(`<script>alert('Order placed successfully! Redirecting to WhatsApp.'); window.location='https://wa.me/${s.whatsappNumber}?text=${waMsg}';</script>`);
+    const waMsg = encodeURIComponent("Hello Admin, New Order Placed! Order ID: " + order.id + ", Total: PKR " + total + ", Name: " + customerName);
+    res.send("<script>alert('Order placed successfully!'); window.location='https://wa.me/" + s.whatsappNumber + "?text=" + waMsg + "';</script>");
 });
 
-// INVOICE / RECEIPT PDF DOWNLOAD
+// INVOICE RECEIPT
 app.get('/order/invoice/:id', (req, res) => {
     const o = db.orders.find(x => x.id === req.params.id);
     if (!o) return res.send("Order Not Found");
@@ -499,7 +498,7 @@ app.get('/orders', (req, res) => {
     `);
 });
 
-// SUPPORT TICKETS (IN-APP CHAT)
+// SUPPORT TICKETS
 app.get('/tickets', (req, res) => {
     res.send(`
     <!DOCTYPE html>
@@ -540,7 +539,7 @@ app.post('/tickets/add', (req, res) => {
     res.redirect('/tickets');
 });
 
-// AUTH SYSTEM (LOGIN / LOGOUT / REGISTER)
+// AUTH SYSTEM
 app.get('/login', (req, res) => {
     res.send(`
     <!DOCTYPE html>
@@ -635,7 +634,7 @@ app.get('/logout', (req, res) => {
     res.redirect('/');
 });
 
-// SUPER ADMIN HUB (30 THEMES + CATEGORY/PRODUCT ADD & DELETE + SMS DISPATCH + TICKETS)
+// SUPER ADMIN HUB
 app.get('/admin', requireAdmin, (req, res) => {
     const resellers = db.users.filter(u => u.role === 'Reseller');
 
@@ -665,7 +664,7 @@ app.get('/admin', requireAdmin, (req, res) => {
             </form>
         </section>
 
-        <!-- ORDERS APPROVAL & DISPATCH SMS ALERT -->
+        <!-- ORDERS APPROVAL -->
         <section class="glass-card p-4 space-y-3">
             <h2 class="text-xs font-black uppercase"><i class="fa-solid fa-box text-emerald-400"></i> Customer Orders (${db.orders.length})</h2>
             <div class="space-y-3">
@@ -685,7 +684,7 @@ app.get('/admin', requireAdmin, (req, res) => {
                                 <input type="text" name="trackingNumber" placeholder="Tracking No" value="${o.trackingNumber}" required class="bg-white/10 border p-2 rounded-lg text-xs text-white">
                             </div>
                             <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-2 rounded-lg text-xs">
-                                Approve & Send Dispatch SMS Alert
+                                Approve & Send Dispatch Alert
                             </button>
                         </form>
                     </div>
@@ -710,7 +709,7 @@ app.get('/admin', requireAdmin, (req, res) => {
             </div>
         </section>
 
-        <!-- CATEGORIES (ADD & DELETE) -->
+        <!-- CATEGORIES -->
         <section class="glass-card p-4 space-y-3">
             <h2 class="text-xs font-black uppercase">Categories (Add & Delete)</h2>
             <form action="/admin/categories/add" method="POST" enctype="multipart/form-data" class="space-y-2">
@@ -728,7 +727,7 @@ app.get('/admin', requireAdmin, (req, res) => {
             </div>
         </section>
 
-        <!-- PRODUCTS (ADD, STOCK, WHOLESALE PRICE & DELETE) -->
+        <!-- PRODUCTS -->
         <section class="glass-card p-4 space-y-3">
             <h2 class="text-xs font-black uppercase">Products (Add & Inventory Control)</h2>
             <form action="/admin/products/add" method="POST" enctype="multipart/form-data" class="space-y-2">
@@ -759,7 +758,7 @@ app.get('/admin', requireAdmin, (req, res) => {
             </div>
         </section>
 
-        <!-- SUPPORT TICKETS REPLY -->
+        <!-- SUPPORT TICKETS -->
         <section class="glass-card p-4 space-y-3">
             <h2 class="text-xs font-black uppercase text-purple-400"><i class="fa-solid fa-headset"></i> Support Tickets (${db.tickets.length})</h2>
             <div class="space-y-2">
@@ -825,8 +824,7 @@ app.post('/admin/orders/approve', requireAdmin, (req, res) => {
         order.trackingNumber = trackingNumber;
         saveData(db);
     }
-    // Automated Dispatch Alert Simulation
-    res.send(`<script>alert('Order Approved! Dispatch SMS/Notification Alert sent to Customer Mobile.'); window.location='/admin';</script>`);
+    res.send("<script>alert('Order Approved! Dispatch Alert sent to Customer Mobile.'); window.location='/admin';</script>");
 });
 
 app.get('/admin/reseller/approve/:id', requireAdmin, (req, res) => {
