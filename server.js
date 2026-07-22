@@ -45,8 +45,7 @@ const defaultData = {
         phoneNumber: "+971 56 439 0792",
         businessEmail: "anzexaluxury@gmail.com",
         address: "UAE / Pakistan",
-        selectedThemeIndex: 4,
-        flashSaleEndTime: Date.now() + (24 * 60 * 60 * 1000)
+        selectedThemeIndex: 4
     },
     users: [
         {
@@ -264,12 +263,7 @@ app.get('/', (req, res) => {
             </div>
         </header>
 
-        <div class="m-3 p-3 rounded-2xl bg-gradient-to-r from-red-600 to-amber-600 text-white text-center space-y-1">
-            <div class="text-[10px] font-black uppercase tracking-widest">⚡ Limited Time Flash Sale ⚡</div>
-            <div id="flashTimer" class="text-sm font-black tracking-widest">00h : 00m : 00s</div>
-        </div>
-
-        <section class="px-3 mb-2">
+        <section class="px-3 pt-3 mb-2">
             <form action="/" method="GET" class="relative">
                 <input type="text" name="search" value="${searchQuery}" placeholder="Search products live..." class="w-full bg-white/10 border border-white/20 rounded-xl p-2.5 text-xs text-white placeholder-slate-400 focus:outline-none">
                 <button type="submit" class="absolute right-3 top-2.5 text-xs text-slate-300"><i class="fa-solid fa-magnifying-glass"></i></button>
@@ -324,19 +318,6 @@ app.get('/', (req, res) => {
             <a href="/tickets" class="flex flex-col items-center text-purple-400"><i class="fa-solid fa-headset"></i><span class="text-[10px] mt-0.5">Support</span></a>
             <a href="/orders" class="flex flex-col items-center"><i class="fa-solid fa-box"></i><span class="text-[10px] mt-0.5">Orders</span></a>
         </nav>
-
-        <script>
-            let endTime = ` + s.flashSaleEndTime + `;
-            setInterval(() => {
-                let now = Date.now();
-                let diff = Math.max(0, endTime - now);
-                let hrs = Math.floor(diff / 3600000).toString().padStart(2, '0');
-                let mins = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
-                let secs = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
-                let el = document.getElementById('flashTimer');
-                if (el) el.innerText = hrs + 'h : ' + mins + 'm : ' + secs + 's';
-            }, 1000);
-        </script>
     </body>
     </html>
     `);
