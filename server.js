@@ -28,10 +28,10 @@ const defaultData = {
         metaDescription: "Exclusive Collection & Premium Products",
         logoUrl: "",
         currency: "PKR Rs.",
-        whatsappNumber: "923000000000",
-        phoneNumber: "+92 300 0000000",
-        businessEmail: "info@anzexa.com",
-        address: "Pakistan"
+        whatsappNumber: "971564390792",
+        phoneNumber: "+971 56 439 0792",
+        businessEmail: "anzexaluxury@gmail.com",
+        address: "UAE / Pakistan"
     },
     users: [
         {
@@ -39,7 +39,7 @@ const defaultData = {
             name: "Super Admin",
             email: "admin@anzexa.com",
             password: "adnan1414",
-            phone: "03000000000",
+            phone: "+971564390792",
             role: "Super Admin",
             status: "Approved",
             idCardNumber: "N/A"
@@ -56,7 +56,12 @@ function loadData() {
     try {
         if (fs.existsSync(dataFile)) {
             const content = fs.readFileSync(dataFile, 'utf8');
-            return content ? JSON.parse(content) : defaultData;
+            const parsed = content ? JSON.parse(content) : defaultData;
+            // Ensure settings update with new contact details
+            parsed.settings.whatsappNumber = "971564390792";
+            parsed.settings.phoneNumber = "+971 56 439 0792";
+            parsed.settings.businessEmail = "anzexaluxury@gmail.com";
+            return parsed;
         } else {
             fs.writeFileSync(dataFile, JSON.stringify(defaultData, null, 2), 'utf8');
             return defaultData;
@@ -101,7 +106,6 @@ const themeHeadStyles = `
             --royal-blue: #2563EB;
             --emerald-green: #10B981;
             --soft-purple: #7C3AED;
-            --luxury-gold: #D4AF37;
         }
 
         body {
@@ -113,7 +117,7 @@ const themeHeadStyles = `
             min-height: 100vh;
             border-left: 1px solid #E5E7EB;
             border-right: 1px solid #E5E7EB;
-            padding-bottom: 70px;
+            padding-bottom: 75px;
         }
 
         .btn-primary-grad { background: linear-gradient(135deg, #2563EB 0%, #60A5FA 100%); color: #FFF; }
@@ -156,6 +160,7 @@ app.get('/', (req, res) => {
                     ${cartCount > 0 ? `<span class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold">${cartCount}</span>` : ''}
                 </a>
                 ${req.session.user ? `
+                    <span class="text-[10px] bg-blue-100 text-blue-800 font-bold px-2 py-1 rounded-lg">${req.session.user.role}</span>
                     <a href="${req.session.user.role === 'Super Admin' ? '/admin' : '/orders'}" class="text-xs font-bold text-[#2563EB]"><i class="fa-solid fa-user"></i></a>
                     <a href="/logout" class="text-xs text-red-500 font-bold"><i class="fa-solid fa-right-from-bracket"></i></a>
                 ` : `
@@ -166,9 +171,13 @@ app.get('/', (req, res) => {
 
         <!-- Hero Banner -->
         <section class="m-3 p-5 rounded-2xl hero-dark-grad text-center space-y-2 shadow-lg">
-            <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-amber-400 text-black tracking-wider">Store Front</span>
+            <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-amber-400 text-black tracking-wider">Official Store</span>
             <h1 class="text-2xl font-black">${s.siteTitle}</h1>
             <p class="text-slate-300 text-xs">${s.metaDescription}</p>
+            <div class="pt-2 text-[10px] text-slate-300 flex justify-center gap-3">
+                <span><i class="fa-solid fa-envelope text-amber-400"></i> ${s.businessEmail}</span>
+                <span><i class="fa-solid fa-phone text-emerald-400"></i> ${s.phoneNumber}</span>
+            </div>
         </section>
 
         <!-- Categories Slider/Grid -->
@@ -227,7 +236,7 @@ app.get('/', (req, res) => {
             <a href="/" class="flex flex-col items-center text-[#2563EB]"><i class="fa-solid fa-house text-base"></i><span class="text-[10px] font-bold mt-0.5">Home</span></a>
             <a href="/cart" class="flex flex-col items-center relative"><i class="fa-solid fa-cart-shopping text-base"></i><span class="text-[10px] font-bold mt-0.5">Cart</span>${cartCount > 0 ? `<span class="absolute -top-1.5 right-1 bg-red-500 text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center font-bold">${cartCount}</span>` : ''}</a>
             <a href="https://wa.me/${s.whatsappNumber}" target="_blank" class="flex flex-col items-center text-emerald-600"><i class="fa-brands fa-whatsapp text-lg"></i><span class="text-[10px] font-bold mt-0.5">WhatsApp</span></a>
-            <a href="/orders" class="flex flex-col items-center"><i class="fa-solid fa-box text-base"></i><span class="text-[10px] font-bold mt-0.5">My Orders</span></a>
+            <a href="/orders" class="flex flex-col items-center"><i class="fa-solid fa-box text-base"></i><span class="text-[10px] font-bold mt-0.5">Orders</span></a>
         </nav>
     </body>
     </html>
@@ -351,9 +360,9 @@ app.get('/cart', (req, res) => {
 
                     <form action="/cart/checkout" method="POST" class="space-y-2 pt-2 border-t">
                         <h4 class="text-xs font-bold text-slate-700">Enter Delivery Address & Mobile Details:</h4>
-                        <input type="text" name="customerName" placeholder="Full Name" required class="w-full bg-slate-50 border p-2.5 rounded-xl text-xs">
-                        <input type="text" name="phone" placeholder="Mobile Number" required class="w-full bg-slate-50 border p-2.5 rounded-xl text-xs">
-                        <input type="text" name="whatsapp" placeholder="WhatsApp Number" required class="w-full bg-slate-50 border p-2.5 rounded-xl text-xs">
+                        <input type="text" name="customerName" placeholder="Full Name" value="${req.session.user ? req.session.user.name : ''}" required class="w-full bg-slate-50 border p-2.5 rounded-xl text-xs">
+                        <input type="text" name="phone" placeholder="Mobile Number" value="${req.session.user ? req.session.user.phone : ''}" required class="w-full bg-slate-50 border p-2.5 rounded-xl text-xs">
+                        <input type="text" name="whatsapp" placeholder="WhatsApp Number (+971...)" required class="w-full bg-slate-50 border p-2.5 rounded-xl text-xs">
                         <textarea name="address" placeholder="Complete Delivery Address..." required class="w-full bg-slate-50 border p-2.5 rounded-xl text-xs h-16"></textarea>
                         
                         <button type="submit" class="w-full blue-emerald-grad font-bold py-3 rounded-xl text-xs uppercase tracking-wider">
@@ -400,9 +409,9 @@ app.post('/cart/checkout', (req, res) => {
     saveData(db);
     req.session.cart = [];
 
-    // Redirect to WhatsApp for Direct Payment
+    // Redirect to WhatsApp Direct Payment
     const waMsg = encodeURIComponent(`Hello ANZEXA Admin,\nNew Order Placed!\nOrder ID: ${order.id}\nTotal: PKR ${total}\nName: ${customerName}\nAddress: ${address}\nPlease share WhatsApp payment details.`);
-    res.send(`<script>alert('Order placed successfully! Redirecting to Admin WhatsApp for payment.'); window.location='https://wa.me/${s.whatsappNumber}?text=${waMsg}';</script>`);
+    res.send(`<script>alert('Order placed successfully! Redirecting to WhatsApp for payment.'); window.location='https://wa.me/${s.whatsappNumber}?text=${waMsg}';</script>`);
 });
 
 // User Orders Tracking
@@ -440,7 +449,7 @@ app.get('/orders', (req, res) => {
     `);
 });
 
-// AUTH SYSTEM
+// AUTH SYSTEM (CUSTOMER + RESELLER REGISTRATION & LOGIN/LOGOUT)
 app.get('/login', (req, res) => {
     res.send(`
     <!DOCTYPE html>
@@ -448,11 +457,15 @@ app.get('/login', (req, res) => {
     <head><title>Login</title>${themeHeadStyles}</head>
     <body class="flex items-center justify-center min-h-screen p-4">
         <form action="/login" method="POST" class="glass-card p-6 w-full space-y-4">
-            <h2 class="text-xl font-black text-center text-[#111111]">Login</h2>
-            <input type="email" name="email" placeholder="Email" required class="w-full bg-slate-50 border p-3 rounded-xl text-xs">
+            <h2 class="text-xl font-black text-center text-[#111111]">Account Login</h2>
+            <input type="email" name="email" placeholder="Email Address" required class="w-full bg-slate-50 border p-3 rounded-xl text-xs">
             <input type="password" name="password" placeholder="Password" required class="w-full bg-slate-50 border p-3 rounded-xl text-xs">
             <button type="submit" class="w-full btn-primary-grad font-bold p-3 rounded-xl text-xs">Sign In</button>
-            <a href="/register" class="block text-center text-xs text-[#2563EB] font-bold">Create Customer Account</a>
+            
+            <div class="pt-2 text-center space-y-2">
+                <a href="/register" class="block text-xs text-[#2563EB] font-bold">Create Customer Account</a>
+                <a href="/register-reseller" class="block text-xs text-purple-600 font-bold">Apply as Reseller / Wholesale Partner</a>
+            </div>
         </form>
     </body>
     </html>
@@ -462,26 +475,32 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
     const user = db.users.find(u => u.email === email && u.password === password);
-    if (!user) return res.send("<script>alert('Invalid Email/Password'); window.location='/login';</script>");
+    if (!user) return res.send("<script>alert('Invalid Email or Password'); window.location='/login';</script>");
+    
+    if (user.role === 'Reseller' && user.status !== 'Approved') {
+        return res.send("<script>alert('Your Reseller Account is Pending Admin Approval.'); window.location='/login';</script>");
+    }
+
     req.session.user = user;
     if (user.role === 'Super Admin') return res.redirect('/admin');
     return res.redirect('/');
 });
 
+// CUSTOMER REGISTER
 app.get('/register', (req, res) => {
     res.send(`
     <!DOCTYPE html>
     <html>
-    <head><title>Register</title>${themeHeadStyles}</head>
+    <head><title>Customer Registration</title>${themeHeadStyles}</head>
     <body class="flex items-center justify-center min-h-screen p-4">
         <form action="/register" method="POST" class="glass-card p-6 w-full space-y-3">
-            <h2 class="text-xl font-black text-center text-[#111111]">Customer Sign Up</h2>
+            <h2 class="text-xl font-black text-center text-[#111111]">Create Customer Account</h2>
             <input type="text" name="name" placeholder="Full Name" required class="w-full bg-slate-50 border p-3 rounded-xl text-xs">
-            <input type="email" name="email" placeholder="Email" required class="w-full bg-slate-50 border p-3 rounded-xl text-xs">
-            <input type="text" name="phone" placeholder="Phone" required class="w-full bg-slate-50 border p-3 rounded-xl text-xs">
+            <input type="email" name="email" placeholder="Email Address" required class="w-full bg-slate-50 border p-3 rounded-xl text-xs">
+            <input type="text" name="phone" placeholder="Phone Number" required class="w-full bg-slate-50 border p-3 rounded-xl text-xs">
             <input type="password" name="password" placeholder="Password" required class="w-full bg-slate-50 border p-3 rounded-xl text-xs">
-            <button type="submit" class="w-full btn-primary-grad font-bold p-3 rounded-xl text-xs">Register</button>
-            <a href="/login" class="block text-center text-xs text-slate-500">Back to Login</a>
+            <button type="submit" class="w-full btn-primary-grad font-bold p-3 rounded-xl text-xs">Create Account</button>
+            <a href="/login" class="block text-center text-xs text-slate-500">Already have an account? Login</a>
         </form>
     </body>
     </html>
@@ -492,7 +511,36 @@ app.post('/register', (req, res) => {
     const { name, email, phone, password } = req.body;
     db.users.push({ id: "usr_" + Date.now(), name, email, phone, password, role: "Customer", status: "Approved" });
     saveData(db);
-    res.send("<script>alert('Account Created!'); window.location='/login';</script>");
+    res.send("<script>alert('Customer Account Created! Please Login.'); window.location='/login';</script>");
+});
+
+// RESELLER REGISTER
+app.get('/register-reseller', (req, res) => {
+    res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head><title>Reseller Application</title>${themeHeadStyles}</head>
+    <body class="flex items-center justify-center min-h-screen p-4">
+        <form action="/register-reseller" method="POST" class="glass-card p-6 w-full space-y-3">
+            <h2 class="text-lg font-black text-center text-[#7C3AED]">Reseller / Wholesaler Registration</h2>
+            <input type="text" name="name" placeholder="Full Name / Store Name" required class="w-full bg-slate-50 border p-3 rounded-xl text-xs">
+            <input type="email" name="email" placeholder="Email Address" required class="w-full bg-slate-50 border p-3 rounded-xl text-xs">
+            <input type="text" name="phone" placeholder="Phone / WhatsApp" required class="w-full bg-slate-50 border p-3 rounded-xl text-xs">
+            <input type="text" name="idCardNumber" placeholder="ID Card / Business Reg No." required class="w-full bg-slate-50 border p-3 rounded-xl text-xs">
+            <input type="password" name="password" placeholder="Password" required class="w-full bg-slate-50 border p-3 rounded-xl text-xs">
+            <button type="submit" class="w-full purple-grad font-bold p-3 rounded-xl text-xs">Submit Application</button>
+            <a href="/login" class="block text-center text-xs text-slate-500">Back to Login</a>
+        </form>
+    </body>
+    </html>
+    `);
+});
+
+app.post('/register-reseller', (req, res) => {
+    const { name, email, phone, idCardNumber, password } = req.body;
+    db.users.push({ id: "res_" + Date.now(), name, email, phone, idCardNumber, password, role: "Reseller", status: "Pending Approval" });
+    saveData(db);
+    res.send("<script>alert('Reseller Application Submitted! Awaiting Admin Approval.'); window.location='/login';</script>");
 });
 
 app.get('/logout', (req, res) => {
@@ -504,6 +552,7 @@ app.get('/logout', (req, res) => {
 
 app.get('/admin', requireAdmin, (req, res) => {
     const s = db.settings;
+    const resellers = db.users.filter(u => u.role === 'Reseller');
 
     res.send(`
     <!DOCTYPE html>
@@ -524,7 +573,7 @@ app.get('/admin', requireAdmin, (req, res) => {
             </a>
         </div>
 
-        <!-- Orders Management & Approval System -->
+        <!-- Orders Management -->
         <section class="glass-card p-4 space-y-3">
             <h2 class="text-xs font-black uppercase text-[#111111] flex items-center gap-1.5">
                 <span class="w-2.5 h-2.5 rounded-full bg-[#10B981]"></span> Orders & WhatsApp Payment Approval (${db.orders.length})
@@ -554,6 +603,30 @@ app.get('/admin', requireAdmin, (req, res) => {
                                     Approve & Send Tracking Info
                                 </button>
                             </form>
+                        </div>
+                    `).join('')}
+                </div>
+            `}
+        </section>
+
+        <!-- Reseller Approvals Section -->
+        <section class="glass-card p-4 space-y-3">
+            <h2 class="text-xs font-black uppercase text-[#7C3AED] flex items-center gap-1.5">
+                <i class="fa-solid fa-user-gear"></i> Reseller Approvals (${resellers.length})
+            </h2>
+            ${resellers.length === 0 ? `<p class="text-xs text-slate-400">No reseller applications yet.</p>` : `
+                <div class="space-y-2">
+                    ${resellers.map(r => `
+                        <div class="bg-slate-50 border p-3 rounded-xl text-xs space-y-1">
+                            <div class="flex justify-between font-bold">
+                                <span>${r.name}</span>
+                                <span class="px-2 py-0.5 rounded text-[9px] ${r.status === 'Approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${r.status}</span>
+                            </div>
+                            <div><strong>Email:</strong> ${r.email} | <strong>Phone:</strong> ${r.phone}</div>
+                            <div><strong>ID/Reg No:</strong> ${r.idCardNumber}</div>
+                            ${r.status !== 'Approved' ? `
+                                <a href="/admin/reseller/approve/${r.id}" class="inline-block bg-purple-600 text-white font-bold px-3 py-1 rounded-lg text-[10px] mt-1">Approve Reseller</a>
+                            ` : ''}
                         </div>
                     `).join('')}
                 </div>
@@ -618,4 +691,13 @@ app.post('/admin/orders/approve', requireAdmin, (req, res) => {
     res.redirect('/admin');
 });
 
-app.listen(PORT, () => console.log('Mobile First Store Running on Port ' + PORT));
+app.get('/admin/reseller/approve/:id', requireAdmin, (req, res) => {
+    const reseller = db.users.find(u => u.id === req.params.id);
+    if (reseller) {
+        reseller.status = "Approved";
+        saveData(db);
+    }
+    res.redirect('/admin');
+});
+
+app.listen(PORT, () => console.log('ANZEXA Mobile Store Running on Port ' + PORT));
