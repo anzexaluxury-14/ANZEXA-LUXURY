@@ -253,14 +253,15 @@ app.get('/', (req, res) => {
         </nav>
 
         <script>
-            let endTime = ${s.flashSaleEndTime};
+            let endTime = ` + s.flashSaleEndTime + `;
             setInterval(() => {
                 let now = Date.now();
                 let diff = Math.max(0, endTime - now);
                 let hrs = Math.floor(diff / 3600000).toString().padStart(2, '0');
                 let mins = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
                 let secs = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
-                document.getElementById('flashTimer').innerText = `${hrs}h : ${mins}m : ${secs}s`;
+                let el = document.getElementById('flashTimer');
+                if (el) el.innerText = hrs + 'h : ' + mins + 'm : ' + secs + 's';
             }, 1000);
         </script>
     </body>
