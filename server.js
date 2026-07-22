@@ -32,27 +32,7 @@ const luxuryThemes = [
     { name: "Ocean Breeze", bg: "linear-gradient(180deg, #0c4a6e 0%, #082f49 100%)", text: "#bae6fd", primary: "#38bdf8" },
     { name: "Sunset Gold", bg: "linear-gradient(180deg, #7c2d12 0%, #290e05 100%)", text: "#fef08a", primary: "#f97316" },
     { name: "Ruby Red Luxury", bg: "linear-gradient(180deg, #7f1d1d 0%, #450a0a 100%)", text: "#fca5a5", primary: "#ef4444" },
-    { name: "Champagne Pearl", bg: "linear-gradient(180deg, #fef3c7 0%, #fffbeb 100%)", text: "#78350f", primary: "#d97706" },
-    { name: "Cyber Neon", bg: "linear-gradient(180deg, #09090b 0%, #18181b 100%)", text: "#22c55e", primary: "#10b981" },
-    { name: "Platinum Grey", bg: "linear-gradient(180deg, #334155 0%, #0f172a 100%)", text: "#f8fafc", primary: "#94a3b8" },
-    { name: "Royal Velvet Blue", bg: "linear-gradient(180deg, #172554 0%, #050b14 100%)", text: "#93c5fd", primary: "#60a5fa" },
-    { name: "Amethyst Glam", bg: "linear-gradient(180deg, #581c87 0%, #2e1065 100%)", text: "#e9d5ff", primary: "#c084fc" },
-    { name: "Bronze Metal", bg: "linear-gradient(180deg, #451a03 0%, #1c0a00 100%)", text: "#fed7aa", primary: "#f97316" },
-    { name: "Minimal Soft Slate", bg: "linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%)", text: "#0f172a", primary: "#475569" },
-    { name: "Copper Luxury", bg: "linear-gradient(180deg, #78350f 0%, #2e1205 100%)", text: "#ffedd5", primary: "#ea580c" },
-    { name: "Forest Emerald", bg: "linear-gradient(180deg, #14532d 0%, #052e16 100%)", text: "#bbf7d0", primary: "#22c55e" },
-    { name: "Imperial Purple", bg: "linear-gradient(180deg, #6b21a8 0%, #3b0764 100%)", text: "#f3e8ff", primary: "#a855f7" },
-    { name: "Titanium Gold", bg: "linear-gradient(180deg, #1c1917 0%, #0c0a09 100%)", text: "#fde047", primary: "#eab308" },
-    { name: "Nordic Minimal", bg: "linear-gradient(180deg, #fafafa 0%, #f4f4f5 100%)", text: "#18181b", primary: "#27272a" },
-    { name: "Electric Blue", bg: "linear-gradient(180deg, #1d4ed8 0%, #1e40af 100%)", text: "#ffffff", primary: "#60a5fa" },
-    { name: "Desert Sand", bg: "linear-gradient(180deg, #fef3c7 0%, #fde68a 100%)", text: "#78350f", primary: "#b45309" },
-    { name: "Rose Quartz", bg: "linear-gradient(180deg, #ffe4e6 0%, #fecdd3 100%)", text: "#881337", primary: "#e11d48" },
-    { name: "Obsidian Gold", bg: "linear-gradient(180deg, #0a0a0a 0%, #171717 100%)", text: "#facc15", primary: "#eab308" },
-    { name: "Frosted Mint", bg: "linear-gradient(180deg, #ecfdf5 0%, #d1fae5 100%)", text: "#065f46", primary: "#059669" },
-    { name: "Midnight Plum", bg: "linear-gradient(180deg, #2e1065 0%, #1e1b4b 100%)", text: "#e0e7ff", primary: "#818cf8" },
-    { name: "Deep Charcoal", bg: "linear-gradient(180deg, #262626 0%, #171717 100%)", text: "#f5f5f5", primary: "#a3a3a3" },
-    { name: "Luxe Golden Noir", bg: "linear-gradient(180deg, #000000 0%, #1c1917 100%)", text: "#eab308", primary: "#ca8a04" },
-    { name: "Pure White Glow", bg: "linear-gradient(180deg, #ffffff 0%, #ffffff 100%)", text: "#000000", primary: "#2563eb" }
+    { name: "Champagne Pearl", bg: "linear-gradient(180deg, #fef3c7 0%, #fffbeb 100%)", text: "#78350f", primary: "#d97706" }
 ];
 
 const defaultData = {
@@ -83,9 +63,7 @@ const defaultData = {
     categories: [],
     products: [],
     orders: [],
-    coupons: [
-        { code: "ANZEXA10", discountPercent: 10 }
-    ],
+    coupons: [{ code: "ANZEXA10", discountPercent: 10 }],
     tickets: [],
     reviews: []
 };
@@ -100,6 +78,7 @@ function loadData() {
             parsed.settings.businessEmail = "anzexaluxury@gmail.com";
             if (!parsed.coupons) parsed.coupons = defaultData.coupons;
             if (!parsed.tickets) parsed.tickets = [];
+            if (!parsed.users) parsed.users = defaultData.users;
             return parsed;
         } else {
             fs.writeFileSync(dataFile, JSON.stringify(defaultData, null, 2), 'utf8');
@@ -132,7 +111,7 @@ function requireAdmin(req, res, next) {
 }
 
 function getThemeStyles() {
-    const t = luxuryThemes[db.settings.selectedThemeIndex || 0];
+    const t = luxuryThemes[db.settings.selectedThemeIndex || 0] || luxuryThemes[0];
     return `
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -154,7 +133,102 @@ function getThemeStyles() {
     `;
 }
 
-// FRONTEND STORE FRONT
+// ================= AUTH SYSTEM =================
+app.get('/login', (req, res) => {
+    res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head><title>Login - ANZEXA</title>${getThemeStyles()}</head>
+    <body class="flex items-center justify-center min-h-screen p-4">
+        <form action="/login" method="POST" class="glass-card p-6 w-full space-y-4">
+            <h2 class="text-xl font-black text-center">Account Login</h2>
+            <input type="email" name="email" placeholder="Email Address" required class="w-full bg-white/10 border border-white/20 p-3 rounded-xl text-xs text-white">
+            <input type="password" name="password" placeholder="Password" required class="w-full bg-white/10 border border-white/20 p-3 rounded-xl text-xs text-white">
+            <button type="submit" class="w-full btn-theme font-bold p-3 rounded-xl text-xs">Sign In</button>
+            
+            <div class="pt-2 text-center space-y-2 border-t border-white/10">
+                <a href="/register" class="block text-xs font-bold text-blue-400">Create Customer Account</a>
+                <a href="/register-reseller" class="block text-xs font-bold text-purple-400">Apply as Reseller / Wholesale Partner</a>
+            </div>
+        </form>
+    </body>
+    </html>
+    `);
+});
+
+app.post('/login', (req, res) => {
+    const { email, password } = req.body;
+    const user = db.users.find(u => u.email === email && u.password === password);
+    if (!user) return res.send("<script>alert('Invalid Email or Password'); window.location='/login';</script>");
+    if (user.role === 'Reseller' && user.status !== 'Approved') {
+        return res.send("<script>alert('Reseller Account Pending Approval.'); window.location='/login';</script>");
+    }
+    req.session.user = user;
+    if (user.role === 'Super Admin') return res.redirect('/admin');
+    return res.redirect('/');
+});
+
+app.get('/register', (req, res) => {
+    res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head><title>Register Customer</title>${getThemeStyles()}</head>
+    <body class="flex items-center justify-center min-h-screen p-4">
+        <form action="/register" method="POST" class="glass-card p-6 w-full space-y-3">
+            <h2 class="text-xl font-black text-center">Customer Sign Up</h2>
+            <input type="text" name="name" placeholder="Full Name" required class="w-full bg-white/10 border border-white/20 p-3 rounded-xl text-xs text-white">
+            <input type="email" name="email" placeholder="Email Address" required class="w-full bg-white/10 border border-white/20 p-3 rounded-xl text-xs text-white">
+            <input type="text" name="phone" placeholder="Phone Number" required class="w-full bg-white/10 border border-white/20 p-3 rounded-xl text-xs text-white">
+            <input type="password" name="password" placeholder="Password" required class="w-full bg-white/10 border border-white/20 p-3 rounded-xl text-xs text-white">
+            <button type="submit" class="w-full btn-theme font-bold p-3 rounded-xl text-xs">Create Account</button>
+            <a href="/login" class="block text-center text-xs opacity-60">Back to Login</a>
+        </form>
+    </body>
+    </html>
+    `);
+});
+
+app.post('/register', (req, res) => {
+    const { name, email, phone, password } = req.body;
+    db.users.push({ id: "usr_" + Date.now(), name, email, phone, password, role: "Customer", status: "Approved" });
+    saveData(db);
+    res.send("<script>alert('Account Created Successfully! Please Login.'); window.location='/login';</script>");
+});
+
+app.get('/register-reseller', (req, res) => {
+    res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head><title>Reseller Apply</title>${getThemeStyles()}</head>
+    <body class="flex items-center justify-center min-h-screen p-4">
+        <form action="/register-reseller" method="POST" class="glass-card p-6 w-full space-y-3">
+            <h2 class="text-lg font-black text-center text-purple-400">Reseller Application</h2>
+            <input type="text" name="name" placeholder="Business / Store Name" required class="w-full bg-white/10 border border-white/20 p-3 rounded-xl text-xs text-white">
+            <input type="email" name="email" placeholder="Email Address" required class="w-full bg-white/10 border border-white/20 p-3 rounded-xl text-xs text-white">
+            <input type="text" name="phone" placeholder="Phone / WhatsApp" required class="w-full bg-white/10 border border-white/20 p-3 rounded-xl text-xs text-white">
+            <input type="text" name="idCardNumber" placeholder="ID Card / Business Reg No" required class="w-full bg-white/10 border border-white/20 p-3 rounded-xl text-xs text-white">
+            <input type="password" name="password" placeholder="Password" required class="w-full bg-white/10 border border-white/20 p-3 rounded-xl text-xs text-white">
+            <button type="submit" class="w-full bg-purple-600 text-white font-bold p-3 rounded-xl text-xs">Submit Application</button>
+            <a href="/login" class="block text-center text-xs opacity-60">Back to Login</a>
+        </form>
+    </body>
+    </html>
+    `);
+});
+
+app.post('/register-reseller', (req, res) => {
+    const { name, email, phone, idCardNumber, password } = req.body;
+    db.users.push({ id: "res_" + Date.now(), name, email, phone, idCardNumber, password, role: "Reseller", status: "Pending Approval" });
+    saveData(db);
+    res.send("<script>alert('Reseller Application Submitted!'); window.location='/login';</script>");
+});
+
+app.get('/logout', (req, res) => {
+    req.session.destroy();
+    res.redirect('/');
+});
+
+// ================= FRONTEND STORE =================
 app.get('/', (req, res) => {
     const s = db.settings;
     const selectedCat = req.query.category;
@@ -183,17 +257,18 @@ app.get('/', (req, res) => {
                     <span class="text-[10px] bg-blue-500/20 text-blue-300 font-bold px-2 py-1 rounded-lg">${req.session.user.role}</span>
                     <a href="${req.session.user.role === 'Super Admin' ? '/admin' : '/orders'}" class="text-xs font-bold"><i class="fa-solid fa-user"></i></a>
                     <a href="/logout" class="text-xs text-red-400 font-bold"><i class="fa-solid fa-right-from-bracket"></i></a>
-                ` : `<a href="/login" class="text-xs font-bold bg-white/10 px-3 py-1.5 rounded-lg border border-white/20">Login</a>`}
+                ` : `
+                    <a href="/login" class="text-xs font-bold bg-white/10 px-3 py-1.5 rounded-lg border border-white/20"><i class="fa-solid fa-right-to-bracket mr-1"></i>Login</a>
+                    <a href="/register" class="text-xs font-bold btn-theme px-3 py-1.5 rounded-lg">Sign Up</a>
+                `}
             </div>
         </header>
 
-        <!-- Live Flash Sale Countdown Banner -->
         <div class="m-3 p-3 rounded-2xl bg-gradient-to-r from-red-600 to-amber-600 text-white text-center space-y-1">
             <div class="text-[10px] font-black uppercase tracking-widest">⚡ Limited Time Flash Sale ⚡</div>
             <div id="flashTimer" class="text-sm font-black tracking-widest">00h : 00m : 00s</div>
         </div>
 
-        <!-- Live Search Bar -->
         <section class="px-3 mb-2">
             <form action="/" method="GET" class="relative">
                 <input type="text" name="search" value="${searchQuery}" placeholder="Search products live..." class="w-full bg-white/10 border border-white/20 rounded-xl p-2.5 text-xs text-white placeholder-slate-400 focus:outline-none">
@@ -201,7 +276,6 @@ app.get('/', (req, res) => {
             </form>
         </section>
 
-        <!-- Categories Slider -->
         <section class="px-3 py-2">
             <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
                 <a href="/" class="flex-shrink-0 px-4 py-2 rounded-xl text-xs font-bold ${!selectedCat ? 'btn-theme' : 'bg-white/10'}">All</a>
@@ -214,7 +288,6 @@ app.get('/', (req, res) => {
             </div>
         </section>
 
-        <!-- Products List -->
         <section class="px-3 py-2 flex-1">
             <div class="grid grid-cols-2 gap-3">
                 ${filteredProducts.map(p => {
@@ -269,7 +342,7 @@ app.get('/', (req, res) => {
     `);
 });
 
-// SINGLE PRODUCT DETAILS
+// SINGLE PRODUCT
 app.get('/product/:id', (req, res) => {
     const p = db.products.find(x => x.id === req.params.id);
     if (!p) return res.redirect('/');
@@ -300,7 +373,7 @@ app.get('/product/:id', (req, res) => {
     `);
 });
 
-// CART & CHECKOUT WITH COUPONS
+// CART & CHECKOUT
 app.get('/cart', (req, res) => {
     const cart = req.session.cart || [];
     const s = db.settings;
@@ -335,7 +408,6 @@ app.get('/cart', (req, res) => {
                     </div>
                 `).join('')}
 
-                <!-- Coupon Form -->
                 <form action="/cart/coupon" method="POST" class="glass-card p-3 flex gap-2">
                     <input type="text" name="code" placeholder="Coupon Code (e.g. ANZEXA10)" class="flex-1 bg-white/10 border border-white/20 p-2 rounded-xl text-xs text-white">
                     <button type="submit" class="btn-theme px-3 py-2 rounded-xl text-xs font-bold">Apply</button>
@@ -429,46 +501,7 @@ app.post('/cart/checkout', (req, res) => {
     res.send("<script>alert('Order placed successfully!'); window.location='https://wa.me/" + s.whatsappNumber + "?text=" + waMsg + "';</script>");
 });
 
-// INVOICE RECEIPT
-app.get('/order/invoice/:id', (req, res) => {
-    const o = db.orders.find(x => x.id === req.params.id);
-    if (!o) return res.send("Order Not Found");
-    const s = db.settings;
-
-    res.send(`
-    <!DOCTYPE html>
-    <html>
-    <head><title>Invoice - ${o.id}</title><script src="https://cdn.tailwindcss.com"></script></head>
-    <body class="p-6 bg-white text-black max-w-md mx-auto border font-sans">
-        <div class="text-center border-b pb-4 mb-4">
-            <h1 class="text-xl font-black">${s.siteTitle}</h1>
-            <p class="text-xs text-gray-500">${s.businessEmail} | ${s.phoneNumber}</p>
-            <h2 class="text-sm font-bold mt-2">OFFICIAL ORDER INVOICE</h2>
-        </div>
-        <div class="text-xs space-y-1 mb-4">
-            <div><strong>Order ID:</strong> ${o.id}</div>
-            <div><strong>Date:</strong> ${o.date}</div>
-            <div><strong>Customer:</strong> ${o.customerName} (${o.phone})</div>
-            <div><strong>Address:</strong> ${o.address}</div>
-            <div><strong>Status:</strong> ${o.status}</div>
-        </div>
-        <table class="w-full text-xs text-left border-collapse mb-4">
-            <thead>
-                <tr class="border-b"><th class="py-1">Item</th><th class="py-1">Qty</th><th class="py-1">Price</th></tr>
-            </thead>
-            <tbody>
-                ${o.items.map(i => `<tr class="border-b"><td class="py-1">${i.title}</td><td>${i.qty}</td><td>PKR ${i.price}</td></tr>`).join('')}
-            </tbody>
-        </table>
-        <div class="text-right font-black text-sm border-t pt-2">Total Amount: PKR ${o.totalAmount}</div>
-        ${o.courierName ? `<div class="mt-4 p-2 bg-gray-100 text-xs rounded"><strong>Courier:</strong> ${o.courierName} | <strong>Tracking:</strong> ${o.trackingNumber}</div>` : ''}
-        <button onclick="window.print()" class="w-full bg-black text-white py-2 rounded text-xs font-bold mt-6">Print / Save Invoice</button>
-    </body>
-    </html>
-    `);
-});
-
-// CUSTOMER ORDERS
+// ORDERS & INVOICE
 app.get('/orders', (req, res) => {
     res.send(`
     <!DOCTYPE html>
@@ -494,6 +527,42 @@ app.get('/orders', (req, res) => {
                 `).join('')}
             </div>
         `}
+    </body>
+    </html>
+    `);
+});
+
+app.get('/order/invoice/:id', (req, res) => {
+    const o = db.orders.find(x => x.id === req.params.id);
+    if (!o) return res.send("Order Not Found");
+    const s = db.settings;
+
+    res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head><title>Invoice - ${o.id}</title><script src="https://cdn.tailwindcss.com"></script></head>
+    <body class="p-6 bg-white text-black max-w-md mx-auto border font-sans">
+        <div class="text-center border-b pb-4 mb-4">
+            <h1 class="text-xl font-black">${s.siteTitle}</h1>
+            <p class="text-xs text-gray-500">${s.businessEmail} | ${s.phoneNumber}</p>
+            <h2 class="text-sm font-bold mt-2">OFFICIAL ORDER INVOICE</h2>
+        </div>
+        <div class="text-xs space-y-1 mb-4">
+            <div><strong>Order ID:</strong> ${o.id}</div>
+            <div><strong>Date:</strong> ${o.date}</div>
+            <div><strong>Customer:</strong> ${o.customerName} (${o.phone})</div>
+            <div><strong>Address:</strong> ${o.address}</div>
+            <div><strong>Status:</strong> ${o.status}</div>
+        </div>
+        <table class="w-full text-xs text-left border-collapse mb-4">
+            <thead><tr class="border-b"><th class="py-1">Item</th><th class="py-1">Qty</th><th class="py-1">Price</th></tr></thead>
+            <tbody>
+                ${o.items.map(i => `<tr class="border-b"><td class="py-1">${i.title}</td><td>${i.qty}</td><td>PKR ${i.price}</td></tr>`).join('')}
+            </tbody>
+        </table>
+        <div class="text-right font-black text-sm border-t pt-2">Total Amount: PKR ${o.totalAmount}</div>
+        ${o.courierName ? `<div class="mt-4 p-2 bg-gray-100 text-xs rounded"><strong>Courier:</strong> ${o.courierName} | <strong>Tracking:</strong> ${o.trackingNumber}</div>` : ''}
+        <button onclick="window.print()" class="w-full bg-black text-white py-2 rounded text-xs font-bold mt-6">Print / Save Invoice</button>
     </body>
     </html>
     `);
@@ -540,102 +609,7 @@ app.post('/tickets/add', (req, res) => {
     res.redirect('/tickets');
 });
 
-// AUTH SYSTEM
-app.get('/login', (req, res) => {
-    res.send(`
-    <!DOCTYPE html>
-    <html>
-    <head><title>Login</title>${getThemeStyles()}</head>
-    <body class="flex items-center justify-center min-h-screen p-4">
-        <form action="/login" method="POST" class="glass-card p-6 w-full space-y-4">
-            <h2 class="text-xl font-black text-center">Account Login</h2>
-            <input type="email" name="email" placeholder="Email Address" required class="w-full bg-white/10 border border-white/20 p-3 rounded-xl text-xs text-white">
-            <input type="password" name="password" placeholder="Password" required class="w-full bg-white/10 border border-white/20 p-3 rounded-xl text-xs text-white">
-            <button type="submit" class="w-full btn-theme font-bold p-3 rounded-xl text-xs">Sign In</button>
-            
-            <div class="pt-2 text-center space-y-2">
-                <a href="/register" class="block text-xs font-bold text-blue-400">Create Customer Account</a>
-                <a href="/register-reseller" class="block text-xs font-bold text-purple-400">Apply as Reseller / Wholesale Partner</a>
-            </div>
-        </form>
-    </body>
-    </html>
-    `);
-});
-
-app.post('/login', (req, res) => {
-    const { email, password } = req.body;
-    const user = db.users.find(u => u.email === email && u.password === password);
-    if (!user) return res.send("<script>alert('Invalid Email/Password'); window.location='/login';</script>");
-    if (user.role === 'Reseller' && user.status !== 'Approved') {
-        return res.send("<script>alert('Reseller Account Pending Approval.'); window.location='/login';</script>");
-    }
-    req.session.user = user;
-    if (user.role === 'Super Admin') return res.redirect('/admin');
-    return res.redirect('/');
-});
-
-app.get('/register', (req, res) => {
-    res.send(`
-    <!DOCTYPE html>
-    <html>
-    <head><title>Register</title>${getThemeStyles()}</head>
-    <body class="flex items-center justify-center min-h-screen p-4">
-        <form action="/register" method="POST" class="glass-card p-6 w-full space-y-3">
-            <h2 class="text-xl font-black text-center">Customer Sign Up</h2>
-            <input type="text" name="name" placeholder="Full Name" required class="w-full bg-white/10 border border-white/20 p-3 rounded-xl text-xs text-white">
-            <input type="email" name="email" placeholder="Email Address" required class="w-full bg-white/10 border border-white/20 p-3 rounded-xl text-xs text-white">
-            <input type="text" name="phone" placeholder="Phone Number" required class="w-full bg-white/10 border border-white/20 p-3 rounded-xl text-xs text-white">
-            <input type="password" name="password" placeholder="Password" required class="w-full bg-white/10 border border-white/20 p-3 rounded-xl text-xs text-white">
-            <button type="submit" class="w-full btn-theme font-bold p-3 rounded-xl text-xs">Register</button>
-            <a href="/login" class="block text-center text-xs opacity-60">Back to Login</a>
-        </form>
-    </body>
-    </html>
-    `);
-});
-
-app.post('/register', (req, res) => {
-    const { name, email, phone, password } = req.body;
-    db.users.push({ id: "usr_" + Date.now(), name, email, phone, password, role: "Customer", status: "Approved" });
-    saveData(db);
-    res.send("<script>alert('Account Created!'); window.location='/login';</script>");
-});
-
-app.get('/register-reseller', (req, res) => {
-    res.send(`
-    <!DOCTYPE html>
-    <html>
-    <head><title>Reseller Apply</title>${getThemeStyles()}</head>
-    <body class="flex items-center justify-center min-h-screen p-4">
-        <form action="/register-reseller" method="POST" class="glass-card p-6 w-full space-y-3">
-            <h2 class="text-lg font-black text-center text-purple-400">Reseller Application</h2>
-            <input type="text" name="name" placeholder="Business / Store Name" required class="w-full bg-white/10 border border-white/20 p-3 rounded-xl text-xs text-white">
-            <input type="email" name="email" placeholder="Email Address" required class="w-full bg-white/10 border border-white/20 p-3 rounded-xl text-xs text-white">
-            <input type="text" name="phone" placeholder="Phone / WhatsApp" required class="w-full bg-white/10 border border-white/20 p-3 rounded-xl text-xs text-white">
-            <input type="text" name="idCardNumber" placeholder="ID Card / Business Reg No" required class="w-full bg-white/10 border border-white/20 p-3 rounded-xl text-xs text-white">
-            <input type="password" name="password" placeholder="Password" required class="w-full bg-white/10 border border-white/20 p-3 rounded-xl text-xs text-white">
-            <button type="submit" class="w-full bg-purple-600 text-white font-bold p-3 rounded-xl text-xs">Submit Application</button>
-            <a href="/login" class="block text-center text-xs opacity-60">Back to Login</a>
-        </form>
-    </body>
-    </html>
-    `);
-});
-
-app.post('/register-reseller', (req, res) => {
-    const { name, email, phone, idCardNumber, password } = req.body;
-    db.users.push({ id: "res_" + Date.now(), name, email, phone, idCardNumber, password, role: "Reseller", status: "Pending Approval" });
-    saveData(db);
-    res.send("<script>alert('Reseller Application Submitted!'); window.location='/login';</script>");
-});
-
-app.get('/logout', (req, res) => {
-    req.session.destroy();
-    res.redirect('/');
-});
-
-// SUPER ADMIN HUB
+// ================= SUPER ADMIN PANEL =================
 app.get('/admin', requireAdmin, (req, res) => {
     const resellers = db.users.filter(u => u.role === 'Reseller');
 
@@ -654,9 +628,8 @@ app.get('/admin', requireAdmin, (req, res) => {
             </a>
         </div>
 
-        <!-- 30 LUXURY THEMES CHANGER -->
         <section class="glass-card p-4 space-y-3">
-            <h2 class="text-xs font-black uppercase"><i class="fa-solid fa-palette text-amber-400"></i> Select Store Theme (30 Luxury Combos)</h2>
+            <h2 class="text-xs font-black uppercase"><i class="fa-solid fa-palette text-amber-400"></i> Select Store Theme</h2>
             <form action="/admin/theme/select" method="POST" class="space-y-2">
                 <select name="themeIndex" class="w-full bg-black/40 border border-white/20 p-2.5 rounded-xl text-xs font-bold text-white">
                     ${luxuryThemes.map((t, idx) => `<option value="${idx}" ${db.settings.selectedThemeIndex == idx ? 'selected' : ''}>Theme ${idx + 1}: ${t.name}</option>`).join('')}
@@ -665,7 +638,6 @@ app.get('/admin', requireAdmin, (req, res) => {
             </form>
         </section>
 
-        <!-- ORDERS APPROVAL -->
         <section class="glass-card p-4 space-y-3">
             <h2 class="text-xs font-black uppercase"><i class="fa-solid fa-box text-emerald-400"></i> Customer Orders (${db.orders.length})</h2>
             <div class="space-y-3">
@@ -693,7 +665,6 @@ app.get('/admin', requireAdmin, (req, res) => {
             </div>
         </section>
 
-        <!-- RESELLER APPROVALS -->
         <section class="glass-card p-4 space-y-3">
             <h2 class="text-xs font-black uppercase text-purple-400"><i class="fa-solid fa-user-gear"></i> Reseller Applications (${resellers.length})</h2>
             <div class="space-y-2">
@@ -710,9 +681,8 @@ app.get('/admin', requireAdmin, (req, res) => {
             </div>
         </section>
 
-        <!-- CATEGORIES -->
         <section class="glass-card p-4 space-y-3">
-            <h2 class="text-xs font-black uppercase">Categories (Add & Delete)</h2>
+            <h2 class="text-xs font-black uppercase">Categories</h2>
             <form action="/admin/categories/add" method="POST" enctype="multipart/form-data" class="space-y-2">
                 <input type="text" name="name" placeholder="Category Name" required class="w-full bg-white/10 border p-2.5 rounded-xl text-xs text-white">
                 <input type="file" name="coverPhoto" accept="image/*" required class="w-full text-xs">
@@ -728,9 +698,8 @@ app.get('/admin', requireAdmin, (req, res) => {
             </div>
         </section>
 
-        <!-- PRODUCTS -->
         <section class="glass-card p-4 space-y-3">
-            <h2 class="text-xs font-black uppercase">Products (Add & Inventory Control)</h2>
+            <h2 class="text-xs font-black uppercase">Products & Stock Control</h2>
             <form action="/admin/products/add" method="POST" enctype="multipart/form-data" class="space-y-2">
                 <input type="text" name="title" placeholder="Product Title" required class="w-full bg-white/10 border p-2.5 rounded-xl text-xs text-white">
                 <div class="grid grid-cols-2 gap-2">
@@ -759,7 +728,6 @@ app.get('/admin', requireAdmin, (req, res) => {
             </div>
         </section>
 
-        <!-- SUPPORT TICKETS -->
         <section class="glass-card p-4 space-y-3">
             <h2 class="text-xs font-black uppercase text-purple-400"><i class="fa-solid fa-headset"></i> Support Tickets (${db.tickets.length})</h2>
             <div class="space-y-2">
@@ -781,7 +749,7 @@ app.get('/admin', requireAdmin, (req, res) => {
     `);
 });
 
-// ADMIN CONTROLLERS
+// ADMIN ACTIONS
 app.post('/admin/theme/select', requireAdmin, (req, res) => {
     db.settings.selectedThemeIndex = parseInt(req.body.themeIndex);
     saveData(db);
@@ -825,7 +793,7 @@ app.post('/admin/orders/approve', requireAdmin, (req, res) => {
         order.trackingNumber = trackingNumber;
         saveData(db);
     }
-    res.send("<script>alert('Order Approved! Dispatch Alert sent to Customer Mobile.'); window.location='/admin';</script>");
+    res.send("<script>alert('Order Approved! Dispatch Alert sent.'); window.location='/admin';</script>");
 });
 
 app.get('/admin/reseller/approve/:id', requireAdmin, (req, res) => {
